@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Clube de Leitura — Avaliações</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --cream: #F7F3EC;
+    --parchment: #EDE7D9;
+    --ink: #2A2118;
+    --ink-soft: #5C4F3D;
+    --ink-muted: #9C8E7A;
+    --accent: #8B4513;
+    --gold: #C4922A;
+    --gold-light: #F0D9A0;
+    --white: #FFFDF8;
+    --border: rgba(42,33,24,0.15);
+    --shadow: 0 2px 20px rgba(42,33,24,0.08);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+  header {
+    background: var(--ink); padding: 2rem 1.5rem 1.5rem; text-align: center; position: relative; overflow: hidden;
+  }
+  header::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(196,146,42,0.04) 40px, rgba(196,146,42,0.04) 41px);
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; position: relative; }
+  header h1 { font-family: 'Lora', serif; font-size: clamp(26px, 5vw, 38px); color: var(--white); font-weight: 600; line-height: 1.2; position: relative; }
+  header h1 em { font-style: italic; color: var(--gold-light); }
+  .header-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 8px; position: relative; }
+
+  .tabs-bar { background: var(--ink); display: flex; justify-content: center; border-top: 1px solid rgba(255,255,255,0.08); }
+  .tab-btn {
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    padding: 14px 28px; border: none; background: none; color: rgba(255,255,255,0.45);
+    cursor: pointer; letter-spacing: .5px; transition: all .2s; border-bottom: 2px solid transparent;
+  }
+  .tab-btn:hover { color: rgba(255,255,255,0.8); }
+  .tab-btn.active { color: var(--gold-light); border-bottom-color: var(--gold); }
+
+  .container { max-width: 680px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  .panel { display: none; } .panel.active { display: block; }
+
+  .form-card { background: var(--white); border-radius: 12px; border: 1px solid var(--border); padding: 1.75rem; box-shadow: var(--shadow); }
+  .form-section-title { font-family: 'Lora', serif; font-size: 18px; color: var(--ink); margin-bottom: 1.25rem; }
+  .field { margin-bottom: 1.1rem; }
+  .field label { display: block; font-size: 12px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 7px; }
+  .field input, .field textarea {
+    width: 100%; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink);
+    background: var(--cream); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 13px; outline: none; transition: border-color .15s, background .15s; resize: vertical;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--gold); background: var(--white); }
+  .field textarea { min-height: 80px; line-height: 1.6; }
+  .char-hint { font-size: 11px; color: var(--ink-muted); text-align: right; margin-top: 3px; }
+
+  .stars-row { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
+  .star { font-size: 30px; cursor: pointer; color: var(--parchment); transition: color .1s, transform .1s; line-height: 1; user-select: none; }
+  .star.lit { color: var(--gold); }
+  .star:hover { transform: scale(1.15); }
+  .star-label { font-size: 13px; color: var(--ink-muted); margin-top: 2px; }
+
+  .btn-submit {
+    width: 100%; margin-top: 1.25rem; padding: 13px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: .5px;
+    background: var(--ink); color: var(--white); border: none; border-radius: 8px;
+    cursor: pointer; transition: background .15s, opacity .15s;
+  }
+  .btn-submit:hover { background: var(--accent); }
+  .btn-submit:disabled { opacity: .45; cursor: default; }
+
+  .feedback { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-top: 12px; display: none; }
+  .feedback.ok { background: #EBF5EC; color: #2D6A30; display: block; }
+  .feedback.err { background: #FCEAEA; color: #8B2020; display: block; }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin: 1.75rem 0; color: var(--ink-muted); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .book-card { background: var(--white); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 1.5rem; overflow: hidden; }
+  .book-header { background: var(--ink); padding: 1.1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .book-name { font-family: 'Lora', serif; font-size: 17px; color: var(--white); font-weight: 600; }
+  .book-avg { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .avg-num { font-size: 22px; font-weight: 500; color: var(--gold-light); }
+  .avg-stars { color: var(--gold); font-size: 14px; }
+  .avg-count { font-size: 11px; color: rgba(255,255,255,.4); }
+
+  .review-item { padding: 1.1rem 1.5rem; border-top: 1px solid var(--border); }
+  .review-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--parchment); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--ink-soft); flex-shrink: 0; }
+  .review-reader { font-size: 14px; font-weight: 500; }
+  .review-stars { color: var(--gold); font-size: 13px; margin-left: auto; }
+
+  .comment-block { margin-bottom: 8px; }
+  .comment-block:last-child { margin-bottom: 0; }
+  .comment-tag { display: inline-block; font-size: 10px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; padding: 2px 8px; border-radius: 20px; margin-bottom: 5px; }
+  .tag-safe { background: #E8F4F0; color: #2D6A5A; }
+  .tag-spoiler { background: var(--gold-light); color: #7A5010; }
+  .comment-text { font-size: 14px; color: var(--ink-soft); line-height: 1.65; }
+
+  .spoiler-wrap { position: relative; cursor: pointer; }
+  .spoiler-blur { filter: blur(6px); transition: filter .25s; user-select: none; }
+  .spoiler-wrap.revealed .spoiler-blur { filter: none; }
+  .spoiler-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink-soft); font-style: italic; }
+  .spoiler-wrap.revealed .spoiler-overlay { display: none; }
+
+  .stats-bar { display: flex; gap: 1px; background: var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1.5rem; }
+  .stat-item { flex: 1; background: var(--white); padding: 12px 16px; text-align: center; }
+  .stat-num { font-size: 20px; font-weight: 500; color: var(--ink); }
+  .stat-label { font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+
+  .loading { text-align: center; padding: 2.5rem 1rem; color: var(--ink-muted); font-size: 14px; }
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--ink-muted); }
+  .empty-state .big-icon { font-size: 48px; display: block; margin-bottom: 12px; opacity: .4; }
+  .empty-state p { font-size: 14px; }
+
+  @media (max-width: 500px) {
+    .book-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .tab-btn { padding: 12px 18px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">✦ nosso clube ✦</div>
+  <h1>Livros & <em>Opiniões</em></h1>
+  <p class="header-sub">Avalie, comente e descubra o que o clube achou</p>
+</header>
+
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="showTab('form')">✏ Avaliar livro</button>
+  <button class="tab-btn" onclick="showTab('results')">📚 Ver avaliações</button>
+</div>
+
+<div class="container">
+  <div id="panel-form" class="panel active">
+    <div class="form-card">
+      <div class="form-section-title">Sua avaliação</div>
+      <div class="field">
+        <label>Título do livro</label>
+        <input type="text" id="f-book" placeholder="Ex: A Cor Púrpura" maxlength="100"/>
+      </div>
+      <div class="field">
+        <label>Seu nome</label>
+        <input type="text" id="f-reader" placeholder="Como quer ser chamada" maxlength="40"/>
+      </div>
+      <div class="field">
+        <label>Nota geral</label>
+        <div class="stars-row" id="stars-row">
+          <span class="star" data-v="1">★</span>
+          <span class="star" data-v="2">★</span>
+          <span class="star" data-v="3">★</span>
+          <span class="star" data-v="4">★</span>
+          <span class="star" data-v="5">★</span>
+        </div>
+        <div class="star-label" id="star-label">Clique para dar uma nota</div>
+      </div>
+      <div class="divider">comentários</div>
+      <div class="field">
+        <label>Sem spoiler</label>
+        <textarea id="f-nospoiler" placeholder="O que você achou sem revelar a história..." maxlength="500"></textarea>
+        <div class="char-hint"><span id="ns-c">0</span>/500</div>
+      </div>
+      <div class="field">
+        <label>Com spoiler 🔒</label>
+        <textarea id="f-spoiler" placeholder="Aqui pode falar tudo — final, personagens, plot twists..." maxlength="500"></textarea>
+        <div class="char-hint"><span id="sp-c">0</span>/500</div>
+      </div>
+      <button class="btn-submit" id="submit-btn" onclick="submitReview()">Enviar avaliação</button>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  </div>
+
+  <div id="panel-results" class="panel">
+    <div id="stats-area"></div>
+    <div id="books-area"><div class="loading">Carregando avaliações...</div></div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAkpynUg16kTXBP5t4QsjY4UvP6nBSuEsQ",
+    authDomain: "clube-do-livro-f56d4.firebaseapp.com",
+    databaseURL: "https://clube-do-livro-f56d4-default-rtdb.firebaseio.com",
+    projectId: "clube-do-livro-f56d4",
+    storageBucket: "clube-do-livro-f56d4.firebasestorage.app",
+    messagingSenderId: "232590763523",
+    appId: "1:232590763523:web:8a220547e3c0dd907d1036"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const reviewsRef = ref(db, 'reviews');
+
+  // Expose to global scope for onclick handlers
+  window._fbPush = (data) => push(reviewsRef, data);
+
+  // Live listener — updates UI whenever data changes
+  onValue(reviewsRef, (snapshot) => {
+    const data = snapshot.val();
+    const reviews = data ? Object.values(data) : [];
+    window._renderResults(reviews);
+  });
+</script>
+
+<script>
+// ── Stars ──────────────────────────────────────────────────────────────────
+let rating = 0;
+const starEls = document.querySelectorAll('.star');
+const starLabels = ['','😕 Não gostei','😐 Regular','🙂 Bom','😊 Ótimo','🤩 Incrível!'];
+
+starEls.forEach(s => {
+  s.addEventListener('mouseenter', () => litStars(+s.dataset.v));
+  s.addEventListener('mouseleave', () => litStars(rating));
+  s.addEventListener('click', () => {
+    rating = +s.dataset.v;
+    litStars(rating);
+    document.getElementById('star-label').textContent = starLabels[rating];
+  });
+});
+function litStars(val) {
+  starEls.forEach(s => s.classList.toggle('lit', +s.dataset.v <= val));
+}
+
+document.getElementById('f-nospoiler').addEventListener('input', function() {
+  document.getElementById('ns-c').textContent = this.value.length;
+});
+document.getElementById('f-spoiler').addEventListener('input', function() {
+  document.getElementById('sp-c').textContent = this.value.length;
+});
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+function showTab(t) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) =>
+    b.classList.toggle('active', ['form','results'][i] === t));
+  document.querySelectorAll('.panel').forEach((p, i) =>
+    p.classList.toggle('active', ['panel-form','panel-results'][i] === 'panel-'+t));
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────
+async function submitReview() {
+  const book      = document.getElementById('f-book').value.trim();
+  const reader    = document.getElementById('f-reader').value.trim();
+  const nospoiler = document.getElementById('f-nospoiler').value.trim();
+  const spoiler   = document.getElementById('f-spoiler').value.trim();
+
+  if (!book)   { showFB('Informe o título do livro.', 'err'); return; }
+  if (!reader) { showFB('Informe seu nome.', 'err'); return; }
+  if (!rating) { showFB('Dê uma nota antes de enviar.', 'err'); return; }
+  if (!nospoiler && !spoiler) { showFB('Escreva pelo menos um comentário.', 'err'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  try {
+    await window._fbPush({ book, reader, rating, nospoiler, spoiler, ts: Date.now() });
+    showFB('Avaliação salva! ✨', 'ok');
+    document.getElementById('f-book').value = '';
+    document.getElementById('f-reader').value = '';
+    document.getElementById('f-nospoiler').value = '';
+    document.getElementById('f-spoiler').value = '';
+    document.getElementById('ns-c').textContent = '0';
+    document.getElementById('sp-c').textContent = '0';
+    rating = 0; litStars(0);
+    document.getElementById('star-label').textContent = 'Clique para dar uma nota';
+  } catch(e) {
+    showFB('Erro ao salvar. Tente novamente.', 'err');
+    console.error(e);
+  }
+  btn.disabled = false;
+  btn.textContent = 'Enviar avaliação';
+}
+
+function showFB(msg, type) {
+  const el = document.getElementById('feedback');
+  el.textContent = msg;
+  el.className = 'feedback ' + type;
+  setTimeout(() => { el.className = 'feedback'; }, 4000);
+}
+
+// ── Render results (called by Firebase listener) ───────────────────────────
+window._renderResults = function(reviews) {
+  const booksArea = document.getElementById('books-area');
+  const statsArea = document.getElementById('stats-area');
+
+  if (!reviews.length) {
+    statsArea.innerHTML = '';
+    booksArea.innerHTML = `<div class="empty-state"><span class="big-icon">📖</span><p>Nenhuma avaliação ainda.<br>Seja a primeira a avaliar!</p></div>`;
+    return;
+  }
+
+  // Group by book (case-insensitive)
+  const byBook = {};
+  reviews.forEach(r => {
+    const k = r.book.toLowerCase().trim();
+    if (!byBook[k]) byBook[k] = { title: r.book, reviews: [] };
+    byBook[k].reviews.push(r);
+  });
+
+  // Stats
+  const totalBooks = Object.keys(byBook).length;
+  const totalReviews = reviews.length;
+  const globalAvg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+  statsArea.innerHTML = `
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-num">${totalBooks}</div><div class="stat-label">livro${totalBooks!==1?'s':''}</div></div>
+      <div class="stat-item"><div class="stat-num">${totalReviews}</div><div class="stat-label">avaliação${totalReviews!==1?'es':''}</div></div>
+      <div class="stat-item"><div class="stat-num">${globalAvg.toFixed(1)}</div><div class="stat-label">média geral</div></div>
+    </div>`;
+
+  // Sort books by avg rating desc
+  const sorted = Object.values(byBook).sort((a, b) => {
+    const avgA = a.reviews.reduce((s,r)=>s+r.rating,0)/a.reviews.length;
+    const avgB = b.reviews.reduce((s,r)=>s+r.rating,0)/b.reviews.length;
+    return avgB - avgA;
+  });
+
+  let html = '';
+  sorted.forEach(book => {
+    const revs = book.reviews.sort((a, b) => b.ts - a.ts);
+    const avg = revs.reduce((s, r) => s + r.rating, 0) / revs.length;
+    const full = Math.round(avg);
+    const starsHtml = '★'.repeat(full) + '☆'.repeat(5 - full);
+
+    html += `<div class="book-card">
+      <div class="book-header">
+        <div class="book-name">${esc(book.title)}</div>
+        <div class="book-avg">
+          <span class="avg-num">${avg.toFixed(1)}</span>
+          <span class="avg-stars">${starsHtml}</span>
+          <span class="avg-count">${revs.length} av.</span>
+        </div>
+      </div>`;
+
+    revs.forEach(r => {
+      const initials = r.reader.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase();
+      const rStars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+      const uid = 'sp' + r.ts + Math.random().toString(36).slice(2,6);
+      html += `<div class="review-item">
+        <div class="review-meta">
+          <div class="avatar">${esc(initials)}</div>
+          <span class="review-reader">${esc(r.reader)}</span>
+          <span class="review-stars">${rStars}</span>
+        </div>`;
+      if (r.nospoiler) {
+        html += `<div class="comment-block">
+          <span class="comment-tag tag-safe">sem spoiler</span>
+          <div class="comment-text">${esc(r.nospoiler)}</div>
+        </div>`;
+      }
+      if (r.spoiler) {
+        html += `<div class="comment-block">
+          <span class="comment-tag tag-spoiler">com spoiler</span>
+          <div class="spoiler-wrap" id="${uid}" onclick="document.getElementById('${uid}').classList.toggle('revealed')">
+            <div class="spoiler-blur comment-text">${esc(r.spoiler)}</div>
+            <div class="spoiler-overlay">👁 clique para revelar o spoiler</div>
+          </div>
+        </div>`;
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+
+  booksArea.innerHTML = html;
+};
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
